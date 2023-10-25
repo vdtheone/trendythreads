@@ -1,6 +1,6 @@
 from datetime import datetime
 import uuid
-from sqlalchemy import Boolean, Column, DateTime, String
+from sqlalchemy import Boolean, Column, DateTime, Integer, String
 from src.database import db
 
 def generate_uuid():
@@ -19,3 +19,4 @@ class User(db.Model):
     is_deleted = Column(Boolean, default=False)
     created_at = Column(DateTime, default = datetime.utcnow())
     updated_at = Column(DateTime, default = datetime.utcnow(), onupdate=datetime.utcnow())
+    otp = Column(Integer)
