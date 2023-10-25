@@ -7,6 +7,8 @@ from src.utils.create_jwt import create_access_token
 from src.utils.user_serializer import user_serializer
 from src.utils.required_jwt_token import login_required
 from src.database import db
+from src.utils.send_email import send_otp_by_email
+import  random
 
 
 def hash_password(password: str):
@@ -31,16 +33,19 @@ def create_user():
 
         # update password in dict
         user_details["password"] = password
+        otp = random.randint(111111,999999)
 
         user = User(**user_details)
+        user.otp = otp
         db.session.add(user)
         db.session.commit()
         db.session.refresh(user)
+        send_otp_by_email(user_details['email'], otp)
         return jsonify({"message": "User created successfully"})
     except IntegrityError as e:
         return jsonify({"error": f"Email already exist"})
-    # except Exception as e:
-    #     return jsonify({"error": str(e)})
+    except Exception as e:
+        return jsonify({"error": str(e)})
 
 
 def login_user():
