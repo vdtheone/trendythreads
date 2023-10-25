@@ -1,6 +1,7 @@
 import os
-from flask import jsonify, request
+
 import jwt
+from flask import jsonify, request
 
 JWT_SECRET_KEY = os.environ.get("JWT_SECRET_KEY")
 ALGORITHM = os.environ.get("ALGORITHM")
@@ -24,7 +25,7 @@ def login_required(func):
         except jwt.ExpiredSignatureError:
             return jsonify({"error": "Token expired"}), 401
 
-        except:
+        except Exception:
             return jsonify({"error": "Internal server error"})
 
     return inner

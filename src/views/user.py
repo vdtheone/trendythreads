@@ -1,14 +1,15 @@
+import random
 from hashlib import sha256
-from sqlalchemy.exc import IntegrityError
-from src.models.user import User
-from flask import jsonify, request
 
-from src.utils.create_jwt import create_access_token
-from src.utils.user_serializer import user_serializer
-from src.utils.required_jwt_token import login_required
+from flask import jsonify, request
+from sqlalchemy.exc import IntegrityError
+
 from src.database import db
+from src.models.user import User
+from src.utils.create_jwt import create_access_token
+from src.utils.required_jwt_token import login_required
 from src.utils.send_email import send_otp_by_email
-import  random
+from src.utils.user_serializer import user_serializer
 
 
 def hash_password(password: str):
@@ -33,7 +34,7 @@ def create_user():
 
         # update password in dict
         user_details["password"] = password
-        otp = random.randint(111111,999999)
+        otp = random.randint(111111, 999999)
 
         user = User(**user_details)
         user.otp = otp
@@ -43,7 +44,7 @@ def create_user():
         send_otp_by_email(user_details['email'], otp)
         return jsonify({"message": "User created successfully"})
     except IntegrityError as e:
-        return jsonify({"error": f"Email already exist"})
+        return jsonify({"error": f"Email already exist {e}"})
     except Exception as e:
         return jsonify({"error": str(e)})
 
@@ -126,5 +127,4 @@ def update_password(userid):
         user.password = password
     db.session.commit()
     db.session.refresh(user)
-    return {"message":"Password updated"}
-    
+    return {"message": "Password updated"}

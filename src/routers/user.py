@@ -37,6 +37,6 @@ def update_user(userid):
     return update_user_details(userid)
 
 
-@user_bp.route('<userid>/password', methods = ['PUT'])
+@user_bp.route('<userid>/password', methods=['PUT'])
 def change_password(userid):
     return update_password(userid)
