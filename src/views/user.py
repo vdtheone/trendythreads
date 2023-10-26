@@ -2,10 +2,9 @@ import random
 from hashlib import sha256
 
 from flask import jsonify, request
-from sqlalchemy.exc import IntegrityError
 
 from src.database import db
-from src.models.user import User
+from src.models.user import EmailOTP, User
 from src.utils.create_jwt import create_access_token
 from src.utils.required_jwt_token import login_required
 from src.utils.send_email import send_otp_by_email
@@ -29,6 +28,15 @@ def create_user():
             if value == "" or value is None:
                 return jsonify({"error": f"The key '{key}' has no value."})
 
+        check_email_exists = (
+            db.session.query(User)
+            .filter_by(is_deleted=False, email=user_details["email"])
+            .first()
+        )
+
+        if check_email_exists:
+            return jsonify({"error": "Email already exist"})
+
         # hash password
         password = hash_password(user_details.get("password"))
 
@@ -41,10 +49,14 @@ def create_user():
         db.session.add(user)
         db.session.commit()
         db.session.refresh(user)
-        send_otp_by_email(user_details['email'], otp)
-        return jsonify({"message": "User created successfully"})
-    except IntegrityError as e:
-        return jsonify({"error": f"Email already exist {e}"})
+
+        email_otp = EmailOTP(userid=user.id, email=user.email, otp=otp)
+        db.session.add(email_otp)
+        db.session.commit()
+        db.session.refresh(email_otp)
+
+        send_otp_by_email(user_details["email"], otp)
+        return jsonify({"id": user.id, "message": "OTP Send To Your Mail successfully"})
     except Exception as e:
         return jsonify({"error": str(e)})
 
@@ -79,6 +91,7 @@ def login_user():
     return jsonify({"message": "Login successful", "token": access_token})
 
 
+@login_required
 def get_user_by_id(userid):
     user = db.session.query(User).get(userid)
     if not user:
@@ -118,6 +131,7 @@ def update_user_details(userid):
     return {"user": user_serializer(user).json, "message": "User updated"}
 
 
+@login_required
 def update_password(userid):
     user_details = request.json
     user = db.session.query(User).get(userid)
@@ -128,3 +142,39 @@ def update_password(userid):
     db.session.commit()
     db.session.refresh(user)
     return {"message": "Password updated"}
+
+
+@login_required
+def delete_user(userid):
+    user = db.session.query(User).get(userid)
+    if not user:
+        return jsonify({"error": "User not found"})
+    user.is_deleted = True
+    db.session.commit()
+    db.session.refresh(user)
+    return jsonify({"message": "User Deleted"})
+
+
+def varify_otp(userid):
+    data = request.json
+    otp = data["otp"]
+
+    varify_user_otp = (
+        db.session.query(EmailOTP)
+        .filter(EmailOTP.userid == userid, EmailOTP.otp == otp)
+        .first()
+    )
+
+    if not varify_user_otp:
+        return jsonify({"error": "Invalid OTP"})
+
+    user = db.session.query(User).get(userid)
+
+    user.is_varify = True
+
+    db.session.delete(varify_user_otp)
+    db.session.commit()
+
+    db.session.refresh(user)
+
+    return jsonify({"message": "user varified"})
