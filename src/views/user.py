@@ -132,7 +132,7 @@ def update_user_details(userid):
 
 
 @login_required
-def update_password(userid):
+def change_user_password(userid):
     user_details = request.json
     user = db.session.query(User).get(userid)
     if "password" in user_details:
@@ -174,7 +174,36 @@ def varify_otp(userid):
 
     db.session.delete(varify_user_otp)
     db.session.commit()
-
     db.session.refresh(user)
 
     return jsonify({"message": "user varified"})
+
+
+def forgot_password():
+    data = request.json
+    if not all(data.values()):
+        return jsonify({"error": "email must be provided"})
+
+    user_email = data["email"]
+
+    user = (
+        db.session.query(User)
+        .filter_by(email=user_email, is_deleted=False, is_varify=True)
+        .first()
+    )
+    if not user:
+        return jsonify(
+            {
+                "error": """Forgot password is only available for registered users.
+                            Please register first."""
+            }
+        )
+
+    otp = random.randint(111111, 999999)
+
+    email_otp_instance = EmailOTP(userid=user.id, email=user.email, otp=otp)
+    db.session.add(email_otp_instance)
+    db.session.commit()
+    db.session.refresh(email_otp_instance)
+    send_otp_by_email(user_email, otp)
+    return jsonify({"id": user.id, "message": "OTP Send To Your Mail successfully"})
