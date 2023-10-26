@@ -6,6 +6,8 @@ from sqlalchemy import pool
 from alembic import context
 
 from src.models.user import User, EmailOTP
+from src.models.product import Product
+from src.models.category import Category
 from src.database import db
 
 # this is the Alembic Config object, which provides
