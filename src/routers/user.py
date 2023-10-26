@@ -3,10 +3,12 @@ from flask import Blueprint
 from src.views.user import (
     all_users,
     create_user,
+    delete_user,
     get_user_by_id,
     login_user,
     update_password,
     update_user_details,
+    varify_otp,
 )
 
 user_bp = Blueprint("user", __name__)
@@ -37,6 +39,16 @@ def update_user(userid):
     return update_user_details(userid)
 
 
-@user_bp.route('<userid>/password', methods=['PUT'])
+@user_bp.route("<userid>/password", methods=["PUT"])
 def change_password(userid):
     return update_password(userid)
+
+
+@user_bp.route("<userid>", methods=["DELETE"])
+def delete(userid):
+    return delete_user(userid)
+
+
+@user_bp.route("otp/<userid>", methods=["POST"])
+def varify(userid):
+    return varify_otp(userid)
