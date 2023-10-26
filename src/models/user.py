@@ -1,13 +1,9 @@
-import uuid
 from datetime import datetime
 
 from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String
 
 from src.database import db
-
-
-def generate_uuid():
-    return str(uuid.uuid4())
+from src.utils.generate_uuid import generate_uuid
 
 
 class User(db.Model):
