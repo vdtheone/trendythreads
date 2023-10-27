@@ -159,6 +159,13 @@ def varify_otp(userid):
     data = request.json
     otp = data["otp"]
 
+    user_exist = db.session.query(User).get(userid)
+    if not user_exist:
+        return jsonify({"error": "Invalid UserId"})
+
+    if user_exist.is_varify:
+        return jsonify({"message": "User varified"})
+
     varify_user_otp = (
         db.session.query(EmailOTP)
         .filter(EmailOTP.userid == userid, EmailOTP.otp == otp)
