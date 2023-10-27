@@ -5,10 +5,10 @@ from flask import jsonify, request
 
 from src.database import db
 from src.models.user import EmailOTP, User
+from src.serializers.user_serializer import user_serializer
 from src.utils.create_jwt import create_access_token
 from src.utils.required_jwt_token import login_required
 from src.utils.send_email import send_otp_by_email
-from src.utils.user_serializer import user_serializer
 
 
 def hash_password(password: str):
