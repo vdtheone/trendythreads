@@ -1,14 +1,18 @@
+import uuid
 from datetime import datetime
 
 from sqlalchemy import Boolean, Column, DateTime, Float, ForeignKey, Integer, String
 
 from src.database import db
 from src.models.category import Category
-from src.utils.generate_uuid import generate_uuid
+
+
+def generate_uuid():
+    return str(uuid.uuid4())
 
 
 class Product(db.Model):
-    id = Column(String, primary_key=True, index=True, default=generate_uuid())
+    id = Column(String, primary_key=True, index=True, default=generate_uuid)
     category_id = Column(String, ForeignKey(Category.id))
     name = Column(String)
     description = Column(String)
