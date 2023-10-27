@@ -1,6 +1,12 @@
 from flask import Blueprint
 
-from src.views.product import add_new_product, all_products, one_product, search_product
+from src.views.product import (
+    add_new_product,
+    all_products,
+    filter_product,
+    one_product,
+    search_product,
+)
 
 product_bp = Blueprint("product", __name__)
 
@@ -23,3 +29,8 @@ def product_by_id(product_id):
 @product_bp.route("/search", methods=["GET"])
 def search():
     return search_product()
+
+
+@product_bp.route("/filter", methods=["GET"])
+def filter():
+    return filter_product()

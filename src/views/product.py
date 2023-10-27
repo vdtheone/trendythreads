@@ -72,3 +72,29 @@ def search_product():
     results = [item["product"] for item in sorted_products]
 
     return results
+
+
+def filter_product():
+    min_price = request.args.get("min_price")
+    max_price = request.args.get("max_price")
+    brand = request.args.get("brand")
+
+    products = db.session.query(Product)
+
+    if min_price:
+        products = products.filter(Product.price >= float(min_price))
+
+    if max_price:
+        products = products.filter(Product.price <= float(max_price))
+
+    if brand:
+        products = products.filter(Product.brand == brand)
+
+    # Execute the query and retrieve the filtered products
+    filtered_products = products.all()
+
+    all_products = [
+        product_serializer(all_product).json for all_product in filtered_products
+    ]
+
+    return jsonify({"Products": all_products})
