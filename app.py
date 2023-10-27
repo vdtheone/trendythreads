@@ -2,6 +2,8 @@ from flask import Flask
 
 from config import Config
 from src.database import db
+from src.routers.category import category_bp
+from src.routers.product import product_bp
 from src.routers.user import user_bp
 
 
@@ -11,6 +13,8 @@ def create_app():
     app.config["SQLALCHEMY_DATABASE_URI"] = Config.SQLALCHEMY_DATABASE_URI
     db.init_app(app)
     app.register_blueprint(user_bp, url_prefix="/api/users")
+    app.register_blueprint(product_bp, url_prefix="/api/products")
+    app.register_blueprint(category_bp, url_prefix="/api/categories")
     return app
 
 
