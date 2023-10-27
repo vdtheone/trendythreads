@@ -7,7 +7,7 @@ from src.utils.generate_uuid import generate_uuid
 
 
 class Category(db.Model):
-    id = Column(String, primary_key=True, index=True, default=generate_uuid())
+    id = Column(String, primary_key=True, index=True, default=generate_uuid)
     name = Column(String)
     description = Column(String)
     created_at = Column(DateTime, default=datetime.utcnow())
