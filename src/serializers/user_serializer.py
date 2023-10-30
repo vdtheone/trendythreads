@@ -9,4 +9,4 @@ def user_serializer(user):
             "email": user.email,
             "mobile_no": user.mobile_no,
         }
-    )
+    ).json
