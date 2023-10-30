@@ -3,7 +3,7 @@ from flask import jsonify, request
 from src.database import db
 from src.models.category import Category
 from src.models.product import Product
-from src.serializers.category_seliazer import category_serializer
+from src.serializers.category_serializer import category_serializer
 from src.serializers.product_serializer import product_serializer
 
 
