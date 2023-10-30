@@ -25,6 +25,9 @@ def login_required(func):
         except jwt.ExpiredSignatureError:
             return jsonify({"error": "Token expired"}), 401
 
+        except jwt.exceptions.DecodeError:
+            return jsonify({"error": "Not enough segments provided in token"})
+
         except Exception:
             return jsonify({"error": "Internal server error"})
 
