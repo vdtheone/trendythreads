@@ -23,3 +23,15 @@ class Product(db.Model):
     active = Column(Boolean, default=False)
     created_at = Column(DateTime, default=datetime.utcnow())
     updated_at = Column(DateTime, default=datetime.utcnow(), onupdate=datetime.utcnow())
+
+    def product_serializer(self):
+        return {
+            "category_id": self.category_id,
+            "name": self.name,
+            "description": self.description,
+            "price": self.price,
+            "brand": self.brand,
+            "stockquantity": self.stockquantity,
+            "image": self.image,
+            "active": self.active,
+        }

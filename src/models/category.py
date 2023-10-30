@@ -12,3 +12,6 @@ class Category(db.Model):
     description = Column(String)
     created_at = Column(DateTime, default=datetime.utcnow())
     updated_at = Column(DateTime, default=datetime.utcnow(), onupdate=datetime.utcnow())
+
+    def serialize(self):
+        return {"id": self.id, "name": self.name, "description": self.description}

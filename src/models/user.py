@@ -20,6 +20,14 @@ class User(db.Model):
     created_at = Column(DateTime, default=datetime.utcnow())
     updated_at = Column(DateTime, default=datetime.utcnow(), onupdate=datetime.utcnow())
 
+    def serialize(self):
+        return {
+            "first_name": self.first_name,
+            "last_name": self.last_name,
+            "email": self.email,
+            "mobile_no": self.mobile_no,
+        }
+
 
 class EmailOTP(db.Model):
     __tablename__ = "emailotp"
