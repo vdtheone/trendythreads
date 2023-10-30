@@ -3,12 +3,15 @@ from hashlib import sha256
 
 from flask import jsonify, request
 
+from src.common_crud.crud import CRUD
 from src.database import db
 from src.models.user import EmailOTP, User
 from src.serializers.user_serializer import user_serializer
 from src.utils.create_jwt import create_access_token
 from src.utils.required_jwt_token import login_required
 from src.utils.send_email import send_otp_by_email
+
+user_crud = CRUD(User)
 
 
 def hash_password(password: str):
@@ -93,23 +96,21 @@ def login_user():
 
 @login_required
 def get_user_by_id(userid):
-    user = db.session.query(User).get(userid)
-    if not user:
-        return jsonify({"error": "User not found"})
-    return user_serializer(user)
+    # user = db.session.query(User).get(userid)
+    # if not user:
+    #     return jsonify({"error": "User not found"})
+    # return user_serializer(user)
+    return user_crud.read(userid, user_serializer)
 
 
 @login_required
 def all_users():
-    users = db.session.query(User).all()
-    if not users:
-        return jsonify({"error": "User not found"})
-    user_list = []
-
-    for user in users:
-        user_dict = user_serializer(user)
-        user_list.append(user_dict.json)
-    return user_list
+    # users = db.session.query(User).all()
+    # if not users:
+    #     return jsonify({"error": "User not found"})
+    # user_list = [user_serializer(user) for user in users]
+    # return user_list
+    return user_crud.list_all()
 
 
 @login_required
