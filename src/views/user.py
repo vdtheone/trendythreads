@@ -1,17 +1,29 @@
+import os
 import random
 from hashlib import sha256
 
+import jwt
 from flask import jsonify, request
 
 from src.common_crud.crud import CRUD
 from src.database import db
 from src.models.user import EmailOTP, User
 from src.serializers.user_serializer import user_serializer
-from src.utils.create_jwt import create_access_token
+from src.utils.create_jwt import create_access_token, create_token_password
 from src.utils.required_jwt_token import login_required
 from src.utils.send_email import send_otp_by_email
 
 user_crud = CRUD(User)
+
+JWT_SECRET_KEY = os.environ.get("JWT_SECRET_KEY")
+ALGORITHM = os.environ.get("ALGORITHM")
+
+
+def currunt_user():
+    token = request.headers.get("Authorization").split()[1]
+    data = jwt.decode(token, JWT_SECRET_KEY, algorithms=[ALGORITHM])
+    id = data["id"]
+    return id
 
 
 def hash_password(password: str):
@@ -156,34 +168,33 @@ def delete_user(userid):
     return jsonify({"message": "User Deleted"})
 
 
-def varify_otp(userid):
+def varify_otp():
     data = request.json
     otp = data["otp"]
+    email = data["email"]
 
-    user_exist = db.session.query(User).get(userid)
+    user_exist = db.session.query(User).filter(User.email == email).first()
     if not user_exist:
         return jsonify({"error": "Invalid UserId"})
 
-    if user_exist.is_varify:
-        return jsonify({"message": "User varified"})
-
     varify_user_otp = (
         db.session.query(EmailOTP)
-        .filter(EmailOTP.userid == userid, EmailOTP.otp == otp)
+        .filter(EmailOTP.email == email, EmailOTP.otp == otp)
         .first()
     )
 
     if not varify_user_otp:
         return jsonify({"error": "Invalid OTP"})
 
-    user = db.session.query(User).get(userid)
-
-    user.is_varify = True
-
+    # user = db.session.query(User).filter(User)
+    user_exist.is_varify = True
     db.session.delete(varify_user_otp)
     db.session.commit()
-    db.session.refresh(user)
+    db.session.refresh(user_exist)
 
+    token = create_token_password({"email": user_exist.email})
+    if email and otp:
+        return jsonify({"Token": token, "message": "user varified"})
     return jsonify({"message": "user varified"})
 
 
@@ -214,4 +225,10 @@ def forgot_password():
     db.session.commit()
     db.session.refresh(email_otp_instance)
     send_otp_by_email(user_email, otp)
-    return jsonify({"id": user.id, "message": "OTP Send To Your Mail successfully"})
+    return jsonify({"message": "OTP Send To Your Mail successfully"})
+
+
+def update_user_password():
+    id = currunt_user()
+    user = db.session.query(User).get(id)
+    return jsonify({"user": user_serializer(user)})
