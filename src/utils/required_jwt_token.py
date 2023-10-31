@@ -29,6 +29,6 @@ def login_required(func):
             return jsonify({"error": "Not enough segments provided in token"})
 
         except Exception:
-            return jsonify({"error": "Internal server error"})
+            return jsonify({"error": "Internal server error from decorator"})
 
     return inner
