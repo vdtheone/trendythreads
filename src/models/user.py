@@ -32,7 +32,7 @@ class User(db.Model):
 class EmailOTP(db.Model):
     __tablename__ = "emailotp"
 
-    id = Column(String, primary_key=True, index=True, default=generate_uuid())
+    id = Column(String, primary_key=True, index=True, default=generate_uuid)
     userid = Column(String, ForeignKey(User.id))
     email = Column(String)
     created_at = Column(DateTime, default=datetime.utcnow())
