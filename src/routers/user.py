@@ -9,6 +9,7 @@ from src.views.user import (
     get_user_by_id,
     login_user,
     update_user_details,
+    update_user_password,
     varify_otp,
 )
 
@@ -50,11 +51,16 @@ def delete(userid):
     return delete_user(userid)
 
 
-@user_bp.route("otp/<userid>", methods=["POST"])
-def varify(userid):
-    return varify_otp(userid)
+@user_bp.route("otp", methods=["POST"])
+def varify():
+    return varify_otp()
 
 
 @user_bp.route("/forgot_password", methods=["POST"])
 def forgot():
     return forgot_password()
+
+
+@user_bp.route("/update_password", methods=["POST"])
+def update_password():
+    return update_user_password()
