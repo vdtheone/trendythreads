@@ -175,7 +175,7 @@ def varify_otp():
 
     user_exist = db.session.query(User).filter(User.email == email).first()
     if not user_exist:
-        return jsonify({"error": "Invalid UserId"})
+        return jsonify({"error": "Invalid User"})
 
     varify_user_otp = (
         db.session.query(EmailOTP)
@@ -229,6 +229,28 @@ def forgot_password():
 
 
 def update_user_password():
-    id = currunt_user()
-    user = db.session.query(User).get(id)
-    return jsonify({"user": user_serializer(user)})
+    try:
+        token = request.headers.get("Authorization").split()[1]
+        if not token:
+            return jsonify({"error": "Token is missing"}), 401
+        data = jwt.decode(token, JWT_SECRET_KEY, algorithms=[ALGORITHM])
+        email = data["email"]
+        user = db.session.query(User).filter(User.email == email).first()
+        if not user:
+            return jsonify({"error": "Invalid Email"})
+        data = request.json
+        password = data["password"]
+        password = hash_password(password)
+        user.password = password
+        db.session.commit()
+        db.session.refresh(user)
+        return jsonify({"message": "Password is updated. login with new password"})
+
+    except jwt.ExpiredSignatureError:
+        return jsonify({"error": "Token expired"}), 401
+
+    except jwt.exceptions.DecodeError:
+        return jsonify({"error": "Not enough segments provided in token"})
+
+    except Exception:
+        return jsonify({"error": "Internal server error from decorator"})
