@@ -1,5 +1,6 @@
 import os
 import random
+from functools import wraps
 from hashlib import sha256
 
 import jwt
@@ -19,11 +20,19 @@ JWT_SECRET_KEY = os.environ.get("JWT_SECRET_KEY")
 ALGORITHM = os.environ.get("ALGORITHM")
 
 
-def currunt_user():
-    token = request.headers.get("Authorization").split()[1]
-    data = jwt.decode(token, JWT_SECRET_KEY, algorithms=[ALGORITHM])
-    id = data["id"]
-    return id
+def currunt_user_data():
+    try:
+        token = request.headers.get("Authorization").split()[1]
+        data = jwt.decode(token, JWT_SECRET_KEY, algorithms=[ALGORITHM])
+        return data
+    except jwt.ExpiredSignatureError:
+        return jsonify({"error": "Token expired"}), 401
+
+    except jwt.exceptions.DecodeError:
+        return jsonify({"error": "Not enough segments provided in token"})
+
+    except Exception:
+        return jsonify({"error": "Internal server error from decorator"})
 
 
 def hash_password(password: str):
@@ -229,28 +238,68 @@ def forgot_password():
 
 
 def update_user_password():
+    data = currunt_user_data()
+    email = data["email"]
+    user = db.session.query(User).filter(User.email == email).first()
+    if not user:
+        return jsonify({"error": "Invalid Email"})
+    data = request.json
+    password = data["password"]
+    password = hash_password(password)
+    user.password = password
+    db.session.commit()
+    db.session.refresh(user)
+    return jsonify({"message": "Password is updated. login with new password"})
+
+
+def decode_token(token):
     try:
-        token = request.headers.get("Authorization").split()[1]
-        if not token:
-            return jsonify({"error": "Token is missing"}), 401
-        data = jwt.decode(token, JWT_SECRET_KEY, algorithms=[ALGORITHM])
-        email = data["email"]
-        user = db.session.query(User).filter(User.email == email).first()
-        if not user:
-            return jsonify({"error": "Invalid Email"})
-        data = request.json
-        password = data["password"]
-        password = hash_password(password)
-        user.password = password
-        db.session.commit()
-        db.session.refresh(user)
-        return jsonify({"message": "Password is updated. login with new password"})
-
+        return jwt.decode(token, JWT_SECRET_KEY, algorithms=[ALGORITHM])
     except jwt.ExpiredSignatureError:
-        return jsonify({"error": "Token expired"}), 401
-
+        return None
     except jwt.exceptions.DecodeError:
-        return jsonify({"error": "Not enough segments provided in token"})
+        return None
 
-    except Exception:
-        return jsonify({"error": "Internal server error from decorator"})
+
+def token_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        auth_header = request.headers.get("Authorization")
+        if not auth_header or not auth_header.startswith("Bearer "):
+            return jsonify({"error": "Token is missing or invalid"}), 401
+
+        token = auth_header.split()[1]
+        decoded_data = decode_token(token)
+
+        if not decoded_data:
+            return jsonify({"error": "Invalid or expired token"}), 401
+
+        # Pass the decoded data to the decorated function
+        return f(decoded_data, *args, **kwargs)
+
+    return decorated_function
+
+
+@token_required
+def update_password_logic(decoded_data):
+    email = decoded_data.get("email")
+
+    # Retrieve the user from the database
+    user = db.session.query(User).filter_by(email=email).first()
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+
+    # Extract and hash the new password from the JSON request
+    request_data = request.get_json()
+    password = request_data.get("password")
+    if not password:
+        return jsonify({"error": "Password is missing"}), 400
+
+    # Hash the new password and update it in the database
+    hashed_password = hash_password(password)
+    user.password = hashed_password
+
+    # Commit the changes to the database
+    db.session.commit()
+
+    return jsonify({"message": "Password is updated. Log in with your new password"})
