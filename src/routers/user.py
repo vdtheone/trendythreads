@@ -64,3 +64,8 @@ def forgot():
 @user_bp.route("/update_password", methods=["POST"])
 def update_password():
     return update_user_password()
+
+
+# @user_bp.route('/update_password', methods=['POST'])
+# def update_password():
+#     return update_password_logic()
