@@ -15,7 +15,7 @@ def add_cat():
     return add_new_category()
 
 
-@category_bp.route("/", methods=["GET"])
+@category_bp.route("/all_category", methods=["GET"])
 def get_all_categories():
     return all_categories()
 
