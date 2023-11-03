@@ -21,7 +21,7 @@ class CRUD:
                 {"error": "Record already exists or violates a unique constraint"}
             )
 
-    def read(self, item_id, serialize):
+    def get_by_id(self, item_id, serialize):
         item = db.session.query(self.model).get(item_id)
         if not item:
             return jsonify({"error": f"{self.model.__name__} not found"})
