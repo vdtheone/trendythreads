@@ -1,4 +1,5 @@
 import os
+from functools import wraps
 
 import jwt
 from flask import jsonify, request
@@ -28,7 +29,54 @@ def login_required(func):
         except jwt.exceptions.DecodeError:
             return jsonify({"error": "Not enough segments provided in token"})
 
-        except Exception:
-            return jsonify({"error": "Internal server error from decorator"})
+        except Exception as e:
+            return jsonify({"error": str(e)})
 
     return inner
+
+
+def decode_token(token):
+    try:
+        return jwt.decode(token, JWT_SECRET_KEY, algorithms=[ALGORITHM])
+    except jwt.ExpiredSignatureError:
+        return jsonify({"error": "Token expired"}), 401
+
+    except jwt.exceptions.DecodeError:
+        return jsonify({"error": "Not enough segments provided in token"})
+
+    except Exception:
+        return jsonify({"error": "Internal server error from decorator"})
+
+
+def token_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        auth_header = request.headers.get("Authorization")
+        if not auth_header or not auth_header.startswith("Bearer "):
+            return jsonify({"error": "Token is missing or invalid"}), 401
+
+        token = auth_header.split()[1]
+        decoded_data = decode_token(token)
+
+        if not decoded_data:
+            return jsonify({"error": "Invalid or expired token"}), 401
+
+        # Pass the decoded data to the decorated function
+        return f(decoded_data, *args, **kwargs)
+
+    return decorated_function
+
+
+def currunt_user_data():
+    try:
+        token = request.headers.get("Authorization").split()[1]
+        data = jwt.decode(token, JWT_SECRET_KEY, algorithms=[ALGORITHM])
+        return data
+    except jwt.ExpiredSignatureError:
+        return jsonify({"error": "Token expired"}), 401
+
+    except jwt.exceptions.DecodeError:
+        return jsonify({"error": "Not enough segments provided in token"})
+
+    except Exception:
+        return jsonify({"error": "Internal server error from decorator"})
