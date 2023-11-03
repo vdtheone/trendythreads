@@ -1,9 +1,7 @@
 import os
 import random
-from functools import wraps
 from hashlib import sha256
 
-import jwt
 from flask import jsonify, request
 
 from src.common_crud.crud import CRUD
@@ -11,28 +9,17 @@ from src.database import db
 from src.models.user import EmailOTP, User
 from src.serializers.user_serializer import user_serializer
 from src.utils.create_jwt import create_access_token, create_token_password
-from src.utils.required_jwt_token import login_required
+from src.utils.required_jwt_token import (
+    currunt_user_data,
+    login_required,
+    token_required,
+)
 from src.utils.send_email import send_otp_by_email
 
 user_crud = CRUD(User)
 
 JWT_SECRET_KEY = os.environ.get("JWT_SECRET_KEY")
 ALGORITHM = os.environ.get("ALGORITHM")
-
-
-def currunt_user_data():
-    try:
-        token = request.headers.get("Authorization").split()[1]
-        data = jwt.decode(token, JWT_SECRET_KEY, algorithms=[ALGORITHM])
-        return data
-    except jwt.ExpiredSignatureError:
-        return jsonify({"error": "Token expired"}), 401
-
-    except jwt.exceptions.DecodeError:
-        return jsonify({"error": "Not enough segments provided in token"})
-
-    except Exception:
-        return jsonify({"error": "Internal server error from decorator"})
 
 
 def hash_password(password: str):
@@ -85,98 +72,6 @@ def create_user():
         return jsonify({"error": str(e)})
 
 
-def login_user():
-    user_credential = request.json
-
-    # check if any value is none
-    for key, value in user_credential.items():
-        if value == "" or value is None:
-            return jsonify({"error": f"The key '{key}' has no value."})
-
-    # first hash password and after compare with database
-    password = hash_password(user_credential.get("password"))
-
-    # check credential of user in database
-    user = (
-        db.session.query(User)
-        .filter(
-            User.email == user_credential.get("email"),
-            User.password == password,
-        )
-        .first()
-    )
-
-    if not user:
-        return jsonify({"error": "Invalid email or password"})
-
-    user_dict = {"id": user.id, "email": user.email}
-    access_token = create_access_token(user_dict)
-
-    return jsonify({"message": "Login successful", "token": access_token})
-
-
-@login_required
-def get_user_by_id(userid):
-    # user = db.session.query(User).get(userid)
-    # if not user:
-    #     return jsonify({"error": "User not found"})
-    # return user_serializer(user)
-    return user_crud.read(userid, user_serializer)
-
-
-@login_required
-def all_users():
-    # users = db.session.query(User).all()
-    # if not users:
-    #     return jsonify({"error": "User not found"})
-    # user_list = [user_serializer(user) for user in users]
-    # return user_list
-    return user_crud.list_all()
-
-
-@login_required
-def update_user_details(userid):
-    user_details = request.json
-    user = db.session.query(User).get(userid)
-    if "first_name" in user_details:
-        user.first_name = user_details["first_name"]
-    if "last_name" in user_details:
-        user.last_name = user_details["last_name"]
-    if "email" in user_details:
-        user.email = user_details["email"]
-    if "mobile_no" in user_details:
-        user.mobile_no = user_details["mobile_no"]
-
-    db.session.commit()
-    db.session.refresh(user)
-
-    return {"user": user_serializer(user).json, "message": "User updated"}
-
-
-@login_required
-def change_user_password(userid):
-    user_details = request.json
-    user = db.session.query(User).get(userid)
-    if "password" in user_details:
-        # hash password
-        password = hash_password(user_details.get("password"))
-        user.password = password
-    db.session.commit()
-    db.session.refresh(user)
-    return {"message": "Password updated"}
-
-
-@login_required
-def delete_user(userid):
-    user = db.session.query(User).get(userid)
-    if not user:
-        return jsonify({"error": "User not found"})
-    user.is_deleted = True
-    db.session.commit()
-    db.session.refresh(user)
-    return jsonify({"message": "User Deleted"})
-
-
 def varify_otp():
     data = request.json
     otp = data["otp"]
@@ -195,16 +90,111 @@ def varify_otp():
     if not varify_user_otp:
         return jsonify({"error": "Invalid OTP"})
 
-    # user = db.session.query(User).filter(User)
     user_exist.is_varify = True
     db.session.delete(varify_user_otp)
     db.session.commit()
     db.session.refresh(user_exist)
 
+    # not execute or not working
+    if not user_exist.is_varify:
+        return jsonify({"message": "user varified"})
+
     token = create_token_password({"email": user_exist.email})
-    if email and otp:
-        return jsonify({"Token": token, "message": "user varified"})
-    return jsonify({"message": "user varified"})
+    return jsonify({"Token": token, "message": "user varified"})
+
+
+def login_user():
+    user_credential = request.json
+
+    # check if any value is none
+    for key, value in user_credential.items():
+        if value == "" or value is None:
+            return jsonify({"error": f"The key '{key}' has no value."})
+
+    # first hash password and after compare with database
+    password = hash_password(user_credential.get("password"))
+
+    # check credential of user in database
+    user = (
+        db.session.query(User)
+        .filter_by(
+            email=user_credential.get("email"),
+            password=password,
+            is_deleted=False,
+        )
+        .first()
+    )
+
+    if not user:
+        return jsonify({"error": "Invalid email or password"})
+
+    user_dict = {"id": user.id, "email": user.email}
+    access_token = create_access_token(user_dict)
+
+    return jsonify({"message": "Login successful", "token": access_token})
+
+
+@token_required
+def get_user_by_id(decoded_data):
+    user_id = request.args.get("user_id")
+    if not user_id:
+        user_id = decoded_data.get("id")
+    return user_crud.get_by_id(user_id, user_serializer)
+
+
+@login_required
+def all_users():
+    return user_crud.list_all()
+
+
+@token_required
+def update_user_details(decoded_data):
+    user_id = decoded_data.get("id")
+    user_details = request.json
+    user = db.session.query(User).get(user_id)
+    if not user:
+        return jsonify({"error": "User not found"})
+    if "first_name" in user_details:
+        user.first_name = user_details["first_name"]
+    if "last_name" in user_details:
+        user.last_name = user_details["last_name"]
+    if "email" in user_details:
+        user.email = user_details["email"]
+    if "mobile_no" in user_details:
+        user.mobile_no = user_details["mobile_no"]
+
+    db.session.commit()
+    db.session.refresh(user)
+
+    return {"user": user_serializer(user), "message": "User updated"}
+
+
+@token_required
+def change_user_password(decoded_data):
+    user_id = decoded_data.get("id")
+    user_details = request.json
+    user = db.session.query(User).get(user_id)
+    if not user:
+        return jsonify({"error": "User not found"})
+    if "password" in user_details:
+        # hash password
+        password = hash_password(user_details.get("password"))
+        user.password = password
+    db.session.commit()
+    db.session.refresh(user)
+    return {"message": "Password updated"}
+
+
+@token_required
+def delete_user(decoded_data):
+    user_id = decoded_data.get("id")
+    user = db.session.query(User).get(user_id)
+    if not user:
+        return jsonify({"error": "User not found"})
+    user.is_deleted = True
+    db.session.commit()
+    db.session.refresh(user)
+    return jsonify({"message": "User Deleted"})
 
 
 def forgot_password():
@@ -250,34 +240,6 @@ def update_user_password():
     db.session.commit()
     db.session.refresh(user)
     return jsonify({"message": "Password is updated. login with new password"})
-
-
-def decode_token(token):
-    try:
-        return jwt.decode(token, JWT_SECRET_KEY, algorithms=[ALGORITHM])
-    except jwt.ExpiredSignatureError:
-        return None
-    except jwt.exceptions.DecodeError:
-        return None
-
-
-def token_required(f):
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        auth_header = request.headers.get("Authorization")
-        if not auth_header or not auth_header.startswith("Bearer "):
-            return jsonify({"error": "Token is missing or invalid"}), 401
-
-        token = auth_header.split()[1]
-        decoded_data = decode_token(token)
-
-        if not decoded_data:
-            return jsonify({"error": "Invalid or expired token"}), 401
-
-        # Pass the decoded data to the decorated function
-        return f(decoded_data, *args, **kwargs)
-
-    return decorated_function
 
 
 @token_required
