@@ -21,14 +21,19 @@ def register():
     return create_user()
 
 
+@user_bp.route("otp", methods=["POST"])
+def varify():
+    return varify_otp()
+
+
 @user_bp.route("/login", methods=["POST"])
 def login():
     return login_user()
 
 
-@user_bp.route("/<userid>", methods=["GET"])
-def get_user(userid):
-    return get_user_by_id(userid)
+@user_bp.route("/profile", methods=["GET"])
+def get_user():
+    return get_user_by_id()
 
 
 @user_bp.route("/getall", methods=["GET"])
@@ -36,24 +41,19 @@ def get_all_users():
     return all_users()
 
 
-@user_bp.route("<userid>", methods=["PATCH"])
-def update_user(userid):
-    return update_user_details(userid)
+@user_bp.route("/update_profile", methods=["PATCH"])
+def update_user():
+    return update_user_details()
 
 
-@user_bp.route("<userid>/password", methods=["PUT"])
-def change_password(userid):
-    return change_user_password(userid)
+@user_bp.route("change_password", methods=["PUT"])
+def change_password():
+    return change_user_password()
 
 
-@user_bp.route("<userid>", methods=["DELETE"])
-def delete(userid):
-    return delete_user(userid)
-
-
-@user_bp.route("otp", methods=["POST"])
-def varify():
-    return varify_otp()
+@user_bp.route("/delete_account", methods=["DELETE"])
+def delete():
+    return delete_user()
 
 
 @user_bp.route("/forgot_password", methods=["POST"])
