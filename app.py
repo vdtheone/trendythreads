@@ -13,9 +13,9 @@ def create_app():
     app.debug = True
     app.config["SQLALCHEMY_DATABASE_URI"] = Config.SQLALCHEMY_DATABASE_URI
     db.init_app(app)
-    app.register_blueprint(user_bp, url_prefix="/api/users")
-    app.register_blueprint(product_bp, url_prefix="/api/products")
-    app.register_blueprint(category_bp, url_prefix="/api/categories")
+    app.register_blueprint(user_bp, url_prefix="/api/user")
+    app.register_blueprint(product_bp, url_prefix="/api/product")
+    app.register_blueprint(category_bp, url_prefix="/api/category")
     app.register_blueprint(cart_bp, url_prefix="/api/cart")
     return app
 
