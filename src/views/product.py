@@ -49,7 +49,7 @@ def one_product(product_id):
 
 
 def search_product():
-    query = request.args.get("query").lower()
+    search_value = request.args.get("query").lower()
     results = []
     products = db.session.query(Product).all()
     products = [product_serializer(all_product).json for all_product in products]
@@ -57,7 +57,7 @@ def search_product():
     filtered_products = [
         {
             "product": product,
-            "score": fuzz.token_sort_ratio(query, product["name"].lower()),
+            "score": fuzz.token_sort_ratio(search_value, product["name"].lower()),
         }
         for product in products
     ]
