@@ -37,7 +37,8 @@ def login_required(func):
 
 def decode_token(token):
     try:
-        return jwt.decode(token, JWT_SECRET_KEY, algorithms=[ALGORITHM])
+        data = jwt.decode(token, JWT_SECRET_KEY, algorithms=[ALGORITHM])
+        return data
     except jwt.ExpiredSignatureError:
         return jsonify({"error": "Token expired"}), 401
 
@@ -51,18 +52,29 @@ def decode_token(token):
 def token_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        auth_header = request.headers.get("Authorization")
-        if not auth_header or not auth_header.startswith("Bearer "):
-            return jsonify({"error": "Token is missing or invalid"}), 401
+        try:
+            auth_header = request.headers.get("Authorization")
 
-        token = auth_header.split()[1]
-        decoded_data = decode_token(token)
+            if not auth_header or not auth_header.startswith("Bearer "):
+                return jsonify({"error": "Token is missing or invalid"}), 401
 
-        if not decoded_data:
-            return jsonify({"error": "Invalid or expired token"}), 401
+            token = auth_header.split()[1]
 
-        # Pass the decoded data to the decorated function
-        return f(decoded_data, *args, **kwargs)
+            if not token:
+                return jsonify({"error": "Token is missing"}), 401
+
+            decoded_data = jwt.decode(token, JWT_SECRET_KEY, algorithms=[ALGORITHM])
+
+            return f(decoded_data, *args, **kwargs)
+
+        except jwt.ExpiredSignatureError:
+            return jsonify({"error": "Token expired"}), 401
+
+        except jwt.exceptions.DecodeError:
+            return jsonify({"error": "Not enough segments provided in token"})
+
+        except Exception as e:
+            return jsonify({"error": str(e)})
 
     return decorated_function
 
