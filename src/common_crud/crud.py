@@ -1,5 +1,4 @@
 from flask import jsonify
-from sqlalchemy.exc import IntegrityError
 
 from src.database import db
 
@@ -15,11 +14,9 @@ class CRUD:
             db.session.commit()
             db.session.refresh(new_instance)
             return {"id": new_instance.id, "message": "Record created successfully"}
-        except IntegrityError:
+        except Exception as e:
             db.session.rollback()
-            return jsonify(
-                {"error": "Record already exists or violates a unique constraint"}
-            )
+            return jsonify({"error": str(e)})
 
     def get_by_id(self, item_id, serialize):
         item = db.session.query(self.model).get(item_id)
