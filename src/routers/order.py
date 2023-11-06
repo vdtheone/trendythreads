@@ -52,12 +52,12 @@ def update_order_status(order_id):
 
 @order_bp.route("/<order_id>/invoice", methods=["GET"])
 def generate_invoice(order_id):
-    order_data = get_invoice_data(order_id)
-    if order_data is None:
+    order_obj = get_invoice_data(order_id)
+    if order_obj is None:
         return jsonify({"error": "Order not found"}, 404)
 
     # Generate the PDF invoice
-    pdf_data = generate_invoice_pdf(order_data)
+    pdf_data = generate_invoice_pdf(order_obj)
 
     # Serve the PDF as a downloadable attachment
     return send_pdf_as_attachment(pdf_data)
