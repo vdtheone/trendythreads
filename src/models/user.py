@@ -1,6 +1,7 @@
 from datetime import datetime
 
 from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String
+from sqlalchemy.orm import relationship
 
 from src.database import db
 from src.utils.generate_uuid import generate_uuid
@@ -19,6 +20,9 @@ class User(db.Model):
     is_deleted = Column(Boolean, default=False)
     created_at = Column(DateTime, default=datetime.utcnow())
     updated_at = Column(DateTime, default=datetime.utcnow(), onupdate=datetime.utcnow())
+
+    # Define one-to-many relationship with orders
+    orders = relationship("Order", back_populates="user")
 
     def serialize(self):
         return {
