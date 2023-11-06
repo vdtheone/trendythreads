@@ -2,6 +2,7 @@ import uuid
 from datetime import datetime
 
 from sqlalchemy import Boolean, Column, DateTime, Float, ForeignKey, Integer, String
+from sqlalchemy.orm import relationship
 
 from src.database import db
 from src.models.category import Category
@@ -23,6 +24,9 @@ class Product(db.Model):
     active = Column(Boolean, default=False)
     created_at = Column(DateTime, default=datetime.utcnow())
     updated_at = Column(DateTime, default=datetime.utcnow(), onupdate=datetime.utcnow())
+
+    # Define one-to-many relationship with orders
+    orders = relationship("Order", back_populates="product")
 
     def product_serializer(self):
         return {
