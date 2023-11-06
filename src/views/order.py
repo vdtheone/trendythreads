@@ -98,43 +98,44 @@ def get_invoice_data(order_id):
     order = db.session.query(Order).get(order_id)
     if order is None:
         return None
-    order_json = order.serialize()
-    return order_json
+    return order
 
 
-def generate_invoice_pdf(order_data):
-    # Create a BytesIO buffer to store the PDF data
+def generate_invoice_pdf(order_obj):
+    def draw_field(p, field, value, x, y):
+        p.setFont(field_style, 14)
+        p.drawString(x, y, f"{field.replace('_', ' ').title()}:")
+        p.setFont(field_style, 12)
+        p.drawString(x + 150, y, str(value))
+
     buffer = BytesIO()
-
-    # Create a PDF canvas with letter size (8.5x11 inches)
     p = canvas.Canvas(buffer, pagesize=A4)
 
-    # Define styles
     title_style = "Helvetica-Bold"
     field_style = "Helvetica"
 
-    # Centered title
-    p.setFont(title_style, 16)
-    p.drawCentredString(300, 750, "Invoice")  # Centered title at (300, 750)
+    p.setFont(title_style, 20)
+    p.drawCentredString(300, 750, "Invoice")
 
-    # Set starting y-coordinate for fields
     y = 700
+    order_data = order_obj.serialize()
 
-    # Iterate through fields and add them to the PDF
-    fields = order_data
-    for field, value in fields.items():
-        p.setFont(field_style, 12)
-        p.drawString(100, y, f"{field.replace('_', ' ').title()}:")
-        p.setFont(field_style, 10)
-        p.drawString(250, y, str(value))
-        y -= 20  # Adjust the y-coordinate for the next field
+    # Fields to be displayed in the invoice with the desired order
+    fields_to_display = {
+        "Order Id": order_data["id"],
+        "Name": f"{order_obj.user.first_name} {order_obj.user.last_name}",
+        "Email": order_obj.user.email,
+        "Created At": order_data["created_at"],
+        "Quantity": order_data["quantity"],
+        "Total Amount": order_data["total_amount"],
+    }
 
-    # Save the PDF content to the buffer
+    for field, value in fields_to_display.items():
+        draw_field(p, field, value, 100, y)
+        y -= 20
+
     p.save()
-
-    # Reset the buffer position to the beginning
     buffer.seek(0)
-
     return buffer
 
 
