@@ -6,6 +6,7 @@ from sqlalchemy.orm import relationship
 
 from src.database import db
 from src.models.category import Category
+from src.models.user import User
 
 
 def generate_uuid():
@@ -38,4 +39,27 @@ class Product(db.Model):
             "stockquantity": self.stockquantity,
             "image": self.image,
             "active": self.active,
+        }
+
+
+class RatingAndReview(db.Model):
+    __tablename__ = "rating_and_reviews"
+
+    id = Column(String, primary_key=True, index=True, default=generate_uuid)
+    user_id = Column(String, ForeignKey(User.id))
+    product_id = Column(String, ForeignKey(Product.id))
+    rating = Column(Float, default=0)
+    review_message = Column(String)
+    created_at = Column(DateTime, default=datetime.utcnow())
+    updated_at = Column(DateTime, default=datetime.utcnow(), onupdate=datetime.utcnow())
+
+    def serialize(self):
+        return {
+            "id": self.id,
+            "user_id": self.user_id,
+            "product_id": self.product_id,
+            "rating": self.rating,
+            "review_message": self.review_message,
+            "created_at": self.created_at,
+            "updated_at": self.updated_at,
         }
