@@ -50,10 +50,16 @@ def filter_order(decoded_data):
 
 @token_required
 def order_by_customer(decoded_data):
+    page = int(request.args.get("page", 1))
+    limit = int(request.args.get("limit", 10))
     user_id = decoded_data.get("id")
-    orders = db.session.query(Order).filter(Order.user_id == user_id).all()
-    all_orders = [order.serialize() for order in orders]
-    return jsonify({"message": all_orders, "count": len(all_orders)})
+    offset = (page - 1) * limit
+    all_orders = db.session.query(Order)
+    orders = (
+        all_orders.filter(Order.user_id == user_id).limit(limit).offset(offset).all()
+    )
+    all_orders_data = [order.serialize() for order in orders]
+    return jsonify({"message": all_orders_data, "count": all_orders.count()})
 
 
 def details_of_order(order_id):
