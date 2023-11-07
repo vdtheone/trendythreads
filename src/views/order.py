@@ -4,6 +4,7 @@ from io import BytesIO
 from flask import Response, jsonify, request
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
+from sqlalchemy import func
 
 from src.database import db
 from src.models.order import Invoice, Order, OrderStatus
@@ -58,8 +59,19 @@ def order_by_customer(decoded_data):
     orders = (
         all_orders.filter(Order.user_id == user_id).limit(limit).offset(offset).all()
     )
+    total_order_amount = (
+        db.session.query(func.sum(Order.total_amount))
+        .filter(Order.user_id == user_id)
+        .scalar()
+    )
     all_orders_data = [order.serialize() for order in orders]
-    return jsonify({"message": all_orders_data, "count": all_orders.count()})
+    return jsonify(
+        {
+            "message": all_orders_data,
+            "count": all_orders.count(),
+            "Total_amount": total_order_amount,
+        }
+    )
 
 
 def details_of_order(order_id):
