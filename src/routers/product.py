@@ -5,6 +5,8 @@ from src.views.product import (
     all_products,
     filter_product,
     one_product,
+    product_rating_by_user,
+    product_review_by_user,
     search_product,
 )
 
@@ -21,7 +23,7 @@ def get_all_products():
     return all_products()
 
 
-@product_bp.route("/get_product_by_id/<product_id>", methods={"GET"})
+@product_bp.route("/get_product_by_id/<product_id>", methods=["GET"])
 def product_by_id(product_id):
     return one_product(product_id)
 
@@ -34,3 +36,13 @@ def search():
 @product_bp.route("/filter", methods=["GET"])
 def filter():
     return filter_product()
+
+
+@product_bp.route("/<product_id>/review", methods=["POST"])
+def review_product(product_id):
+    return product_review_by_user(product_id)
+
+
+@product_bp.route("/<product_id>/rating", methods=["POST"])
+def rating_product(product_id):
+    return product_rating_by_user(product_id)

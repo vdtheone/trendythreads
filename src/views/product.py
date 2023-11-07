@@ -1,9 +1,13 @@
 from flask import jsonify, request
 from fuzzywuzzy import fuzz
 
+from src.common_crud.crud import CRUD
 from src.database import db
-from src.models.product import Product
+from src.models.product import Product, RatingAndReview
 from src.serializers.product_serializer import product_serializer
+from src.utils.required_jwt_token import token_required
+
+product_crud = CRUD(Product)
 
 
 def add_new_product():
@@ -98,3 +102,29 @@ def filter_product():
     ]
 
     return jsonify({"Products": all_products})
+
+
+@token_required
+def product_review_by_user(decoded_data, product_id):
+    user_id = decoded_data["id"]
+    review_data = request.json
+    user_id_and_product_id = {"user_id": user_id, "product_id": product_id}
+    review_data.update(user_id_and_product_id)
+    review = RatingAndReview(**review_data)
+    db.session.add(review)
+    db.session.commit()
+    db.session.refresh(review)
+    return jsonify({"message": "user reviewed product"})
+
+
+@token_required
+def product_rating_by_user(decoded_data, product_id):
+    user_id = decoded_data["id"]
+    review_data = request.json
+    user_id_and_product_id = {"user_id": user_id, "product_id": product_id}
+    review_data.update(user_id_and_product_id)
+    review = RatingAndReview(**review_data)
+    db.session.add(review)
+    db.session.commit()
+    db.session.refresh(review)
+    return jsonify({"message": "user rating a product"})
