@@ -5,6 +5,7 @@ from src.views.product import (
     all_products,
     filter_product,
     one_product,
+    product_pagination,
     product_rating_by_user,
     product_review_by_user,
     search_product,
@@ -21,6 +22,12 @@ def add_product():
 @product_bp.route("/all_products", methods=["GET"])
 def get_all_products():
     return all_products()
+
+
+# Pagination Using List Comprehension
+@product_bp.route("/all_products_list_comprehension", methods=["GET"])
+def get_all_products_list():
+    return product_pagination()
 
 
 @product_bp.route("/get_product_by_id/<product_id>", methods=["GET"])

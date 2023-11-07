@@ -29,9 +29,27 @@ def add_new_product():
 
 
 def all_products():
-    products = db.session.query(Product).all()
-    all_products = [product_serializer(all_product).json for all_product in products]
-    return jsonify({"Products": all_products})
+    page = int(request.args.get("page", 1))
+    limit = int(request.args.get("limit", 10))
+
+    offset_val = (page - 1) * limit
+
+    products_query = db.session.query(Product)
+    all_products_length = products_query.count()
+    all_products = products_query.limit(limit).offset(offset_val).all()
+
+    limited_products = [product_serializer(product).json for product in all_products]
+
+    return jsonify(
+        {
+            "data": limited_products,
+            "count": all_products_length,
+            # "a_No_of_products": len(limited_products),
+            # "a_no_of_pages": ceil(all_products_length / limit),
+            # "a_offset_val": offset_val,
+            # "a_currunt_page_no": page,
+        }
+    )
 
 
 def one_product(product_id):
@@ -128,3 +146,27 @@ def product_rating_by_user(decoded_data, product_id):
     db.session.commit()
     db.session.refresh(review)
     return jsonify({"message": "user rating a product"})
+
+
+# Pagination Using List Comprehension
+def product_pagination():
+    all_products = db.session.query(Product).all()
+
+    # Define the page size (number of items per page)
+    limit = int(request.args.get("limit", 10))
+
+    # Define the current page number
+    page = int(request.args.get("page", 1))
+
+    # Calculate the starting and ending indices for the current page
+    start_index = (page - 1) * limit
+    end_index = page * limit
+
+    # Retrieve the data for the current page
+    page_data = all_products[start_index:end_index]
+    return jsonify(
+        {
+            "data": [product_serializer(product).json for product in page_data],
+            "count": len(all_products),
+        }
+    )
