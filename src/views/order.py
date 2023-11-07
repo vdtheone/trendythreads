@@ -6,7 +6,7 @@ from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
 
 from src.database import db
-from src.models.order import Order, OrderStatus
+from src.models.order import Invoice, Order, OrderStatus
 from src.utils.required_jwt_token import token_required
 
 
@@ -87,26 +87,39 @@ def order_status_update(order_id):
     return jsonify({"message": "Order status updated successfully"})
 
 
-def generate_invoice_of_order(order_id):
-    order = db.session.query(Order).get(order_id)
-    order_json = order.serialize()
-    return jsonify({"order": order_json})
+# def generate_invoice_of_order(order_id):
+#     order = db.session.query(Order).get(order_id)
+#     order_json = order.serialize()
+#     return jsonify({"order": order_json})
+
+
+def insert_invoice_data(order_id):
+    invoice_data = (
+        db.session.query(Invoice).filter(Invoice.order_id == order_id).first()
+    )
+    if not invoice_data:
+        data = {"order_id": order_id}
+        invoice = Invoice(**data)
+        db.session.add(invoice)
+        db.session.commit()
+        db.session.refresh(invoice)
 
 
 def get_invoice_data(order_id):
     # Replace this with your logic to retrieve invoice data
     order = db.session.query(Order).get(order_id)
     if order is None:
-        return None
+        return jsonify({"error": "order not found"})
+    insert_invoice_data(order_id)
     return order
 
 
 def generate_invoice_pdf(order_obj):
     def draw_field(p, field, value, x, y):
-        p.setFont(field_style, 14)
-        p.drawString(x, y, f"{field.replace('_', ' ').title()}:")
-        p.setFont(field_style, 12)
-        p.drawString(x + 150, y, str(value))
+        p.setFont(field_style, 18)
+        p.drawString(x, y, f"{field.replace('_', ' ').title()}")
+        p.setFont(field_style, 16)
+        p.drawString(x + 150, y, " :   " + str(value))
 
     buffer = BytesIO()
     p = canvas.Canvas(buffer, pagesize=A4)
@@ -114,15 +127,20 @@ def generate_invoice_pdf(order_obj):
     title_style = "Helvetica-Bold"
     field_style = "Helvetica"
 
-    p.setFont(title_style, 20)
+    p.setFont(title_style, 24)
     p.drawCentredString(300, 750, "Invoice")
 
     y = 700
+
     order_data = order_obj.serialize()
+
+    invoice_obj = (
+        db.session.query(Invoice).filter(Invoice.order_id == order_data["id"]).first()
+    )
 
     # Fields to be displayed in the invoice with the desired order
     fields_to_display = {
-        "Order Id": order_data["id"],
+        "Invoice Id": invoice_obj.id,
         "Name": f"{order_obj.user.first_name} {order_obj.user.last_name}",
         "Email": order_obj.user.email,
         "Created At": order_data["created_at"],
