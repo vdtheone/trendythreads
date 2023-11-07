@@ -48,3 +48,10 @@ class Order(db.Model):
             "created_at": self.created_at,
             "updated_at": self.updated_at,
         }
+
+
+class Invoice(db.Model):
+    id = Column(String, primary_key=True, index=True, default=generate_uuid)
+    order_id = Column(String, ForeignKey(Order.id))
+    created_at = Column(DateTime, default=datetime.utcnow())
+    updated_at = Column(DateTime, default=datetime.utcnow(), onupdate=datetime.utcnow())
