@@ -6,7 +6,7 @@ from sqlalchemy import pool
 from alembic import context
 
 from src.models.user import User, EmailOTP
-from src.models.product import Product
+from src.models.product import Product, RatingAndReview
 from src.models.category import Category
 from src.models.cart import Cart
 from src.models.order import Order
