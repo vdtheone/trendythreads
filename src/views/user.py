@@ -136,9 +136,9 @@ def login_user():
 
 @token_required
 def get_user_by_id(decoded_data):
-    user_id = request.args.get("user_id")
+    user_id = decoded_data.get("id")
     if not user_id:
-        user_id = decoded_data.get("id")
+        return jsonify({"error": "User not found"})
     return user_crud.get_by_id(user_id, user_serializer)
 
 
