@@ -21,9 +21,13 @@ def register():
     return create_user()
 
 
-@user_bp.route("otp", methods=["POST"])
-def varify():
-    return varify_otp()
+def configure_user_blueprint(limiter):  # To avoid circular impport
+    @user_bp.route("/varify_otp", methods=["POST"])
+    @limiter.limit(
+        "5 per minute"
+    )  # Example rate limit: 5 attempts(requests) per minute
+    def varify():
+        return varify_otp()
 
 
 @user_bp.route("/login", methods=["POST"])
