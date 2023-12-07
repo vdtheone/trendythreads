@@ -73,9 +73,9 @@ def create_user():
 
 
 def varify_otp():
-    data = request.json
-    otp = data["otp"]
-    email = data["email"]
+    requested_user_data = request.json
+    otp = requested_user_data["otp"]
+    email = requested_user_data["email"]
 
     user_exist = db.session.query(User).filter(User.email == email).first()
     if not user_exist:
@@ -95,7 +95,7 @@ def varify_otp():
     db.session.commit()
     db.session.refresh(user_exist)
 
-    # not execute or not working
+    # this code is not execute or not working in this function.
     if not user_exist.is_varify:
         return jsonify({"message": "user varified"})
 
