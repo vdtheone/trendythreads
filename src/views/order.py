@@ -10,6 +10,7 @@ from src.database import db
 from src.models.inventory import Inventory
 from src.models.order import Invoice, Order, OrderStatus
 from src.models.product import Product
+from src.serializers.order_serializer import order_serialzer
 from src.utils.required_jwt_token import token_required
 
 
@@ -43,7 +44,7 @@ def add_new_order(decoded_data):
         update_inventory.stock_quantity -= new_order.quantity
         db.session.commit()
         db.session.refresh(new_order)
-        return {"message": "Order Placed Successfully"}
+        return order_serialzer(new_order)
 
     except Exception as e:
         db.session.rollback()
