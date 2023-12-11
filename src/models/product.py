@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime
 
-from sqlalchemy import Boolean, Column, DateTime, Float, ForeignKey, Integer, String
+from sqlalchemy import Boolean, Column, DateTime, Float, ForeignKey, String
 from sqlalchemy.orm import relationship
 
 from src.database import db
@@ -20,7 +20,6 @@ class Product(db.Model):
     description = Column(String)
     price = Column(Float)
     brand = Column(String)
-    stockquantity = Column(Integer)
     image = Column(String)
     active = Column(Boolean, default=False)
     created_at = Column(DateTime, default=datetime.utcnow())
@@ -36,7 +35,6 @@ class Product(db.Model):
             "description": self.description,
             "price": self.price,
             "brand": self.brand,
-            "stockquantity": self.stockquantity,
             "image": self.image,
             "active": self.active,
         }
