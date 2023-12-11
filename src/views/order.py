@@ -7,22 +7,49 @@ from reportlab.pdfgen import canvas
 from sqlalchemy import func
 
 from src.database import db
+from src.models.inventory import Inventory
 from src.models.order import Invoice, Order, OrderStatus
+from src.models.product import Product
 from src.utils.required_jwt_token import token_required
 
 
 @token_required
 def add_new_order(decoded_data):
-    user_id = decoded_data.get("id")
-    order_data = request.json
-    for key, value in order_data.items():
-        if value == "" or value is None:
-            return jsonify({"error": f"The key '{key}' has no value."})
-    new_order = Order(user_id=user_id, status=OrderStatus.ORDER_PLACED, **order_data)
-    db.session.add(new_order)
-    db.session.commit()
-    db.session.refresh(new_order)
-    return {"message": "Order Placed Successfully"}
+    try:
+        user_id = decoded_data.get("id")
+        order_data = request.json
+        price = (
+            db.session.query(Product)
+            .filter(Product.id == order_data["product_id"])
+            .first()
+            .price
+        )
+        for key, value in order_data.items():
+            if value == "" or value is None:
+                return jsonify({"error": f"The key '{key}' has no value."})
+        new_order = Order(
+            user_id=user_id,
+            total_amount=price,
+            status=OrderStatus.ORDER_PLACED,
+            **order_data,
+        )
+        db.session.add(new_order)
+        # update inventory(stock)
+        update_inventory = (
+            db.session.query(Inventory)
+            .filter(Inventory.product_id == new_order.product_id)
+            .first()
+        )
+        update_inventory.stock_quantity -= new_order.quantity
+        db.session.commit()
+        db.session.refresh(new_order)
+        return {"message": "Order Placed Successfully"}
+
+    except Exception as e:
+        db.session.rollback()
+        return {"Error": str(e)}
+    finally:
+        db.session.close()
 
 
 @token_required
