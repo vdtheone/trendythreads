@@ -10,6 +10,7 @@ from src.models.product import Product, RatingAndReview
 from src.models.category import Category
 from src.models.cart import Cart
 from src.models.order import Order, Invoice
+from src.models.product_stock import Inventory
 from src.database import db
 
 # this is the Alembic Config object, which provides
