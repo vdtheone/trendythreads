@@ -139,7 +139,7 @@ def get_user_by_id(decoded_data):
     user_id = decoded_data.get("id")
     if not user_id:
         return jsonify({"error": "User not found"})
-    return user_crud.get_by_id(user_id, user_serializer)
+    return user_crud.get_by_id(user_id)
 
 
 @login_required
