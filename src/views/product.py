@@ -18,7 +18,6 @@ def add_new_product():
         description=data["description"],
         price=data["price"],
         brand=data["brand"],
-        stockquantity=data["stockquantity"],
         image=data["image"],
         active=data["active"],
     )
