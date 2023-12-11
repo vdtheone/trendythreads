@@ -18,11 +18,11 @@ class CRUD:
             db.session.rollback()
             return jsonify({"error": str(e)})
 
-    def get_by_id(self, item_id, serialize):
+    def get_by_id(self, item_id):
         item = db.session.query(self.model).get(item_id)
         if not item:
             return jsonify({"error": f"{self.model.__name__} not found"})
-        return jsonify(serialize(item))
+        return jsonify(item.serialize())
 
     def update(self, item_id, data):
         item = db.session.query(self.model).get(item_id)
