@@ -8,7 +8,7 @@ ALGORITHM = os.environ.get("ALGORITHM")
 
 
 def create_access_token(payload):
-    expire = datetime.utcnow() + timedelta(minutes=180)
+    expire = datetime.utcnow() + timedelta(days=365)
     payload.update({"exp": expire})
     encoded_token = jwt.encode(payload, JWT_SECRET_KEY, ALGORITHM)
     # return f"Bearer {encoded_token}"
