@@ -28,9 +28,10 @@ def add_new_order(decoded_data):
         for key, value in order_data.items():
             if value == "" or value is None:
                 return jsonify({"error": f"The key '{key}' has no value."})
+        total_amount = price * order_data["quantity"]
         new_order = Order(
             user_id=user_id,
-            total_amount=price,
+            total_amount=total_amount,
             status=OrderStatus.ORDER_PLACED,
             **order_data,
         )
@@ -153,7 +154,7 @@ def insert_invoice_data(order_id):
 
 def get_invoice_data(order_id):
     # Replace this with your logic to retrieve invoice data
-    order = db.session.query(Order).get(order_id)
+    order = db.session.query(Order).filter(Order.id == order_id).first()
     if order is None:
         return jsonify({"error": "order not found"})
     insert_invoice_data(order_id)
@@ -189,9 +190,11 @@ def generate_invoice_pdf(order_obj):
         "Invoice Id": invoice_obj.id,
         "Name": f"{order_obj.user.first_name} {order_obj.user.last_name}",
         "Email": order_obj.user.email,
-        "Created At": order_data["created_at"],
-        "Quantity": order_data["quantity"],
-        "Total Amount": order_data["total_amount"],
+        "Product Name": order_obj.product.name,
+        "Price Per Unit": order_obj.product.price,
+        "Quantity": order_obj.quantity,
+        "Total Amount": float(order_obj.total_amount),
+        "Created At": order_obj.created_at,
     }
 
     for field, value in fields_to_display.items():
