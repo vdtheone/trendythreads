@@ -22,26 +22,73 @@ class OrderStatus(str, Enum):
     RETURNED = "Returned"
 
 
+# class Order(db.Model):
+#     __tablename__ = "order"
+
+#     id = Column(String, primary_key=True, index=True, default=generate_uuid)
+#     user_id = Column(String, ForeignKey(User.id))
+#     product_id = Column(String, ForeignKey(Product.id))
+#     quantity = Column(Integer)
+#     total_amount = Column(Integer)
+#     status = Column(String)
+#     created_at = Column(DateTime, default=datetime.utcnow())
+#     updated_at = Column(DateTime, default=datetime.utcnow(), onupdate=datetime.utcnow())
+
+#     # Define relationships
+#     user = relationship("User", back_populates="orders")
+#     product = relationship("Product", back_populates="orders")
+
+#     def serialize(self):
+# return {
+#     "id": self.id,
+#     "user_id": self.user_id,
+#     "product_id": self.product_id,
+#     "quantity": self.quantity,
+#     "total_amount": self.total_amount,
+#     "created_at": self.created_at,
+#     "updated_at": self.updated_at,
+# }
+
+
 class Order(db.Model):
     __tablename__ = "order"
 
     id = Column(String, primary_key=True, index=True, default=generate_uuid)
     user_id = Column(String, ForeignKey(User.id))
-    product_id = Column(String, ForeignKey(Product.id))
-    quantity = Column(Integer)
-    total_amount = Column(Integer)
-    status = Column(String)
     created_at = Column(DateTime, default=datetime.utcnow())
     updated_at = Column(DateTime, default=datetime.utcnow(), onupdate=datetime.utcnow())
 
     # Define relationships
     user = relationship("User", back_populates="orders")
-    product = relationship("Product", back_populates="orders")
+    order_item = relationship("OrderItem", back_populates="orders")
 
     def serialize(self):
         return {
             "id": self.id,
             "user_id": self.user_id,
+            "created_at": self.created_at,
+            "updated_at": self.updated_at,
+        }
+
+
+class OrderItem(db.Model):
+    __tablename__ = "orderitem"
+
+    id = Column(String, primary_key=True, index=True, default=generate_uuid)
+    order_id = Column(String, ForeignKey(Order.id))
+    product_id = Column(String, ForeignKey(Product.id))
+    quantity = Column(Integer)
+    total_amount = Column(Integer)
+    created_at = Column(DateTime, default=datetime.utcnow())
+    updated_at = Column(DateTime, default=datetime.utcnow(), onupdate=datetime.utcnow())
+
+    # Define relationships
+    product = relationship("Product", back_populates="orders")
+    orders = relationship("Order", back_populates="order_item")
+
+    def serialize(self):
+        return {
+            "id": self.id,
             "product_id": self.product_id,
             "quantity": self.quantity,
             "total_amount": self.total_amount,
