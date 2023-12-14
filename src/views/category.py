@@ -24,10 +24,17 @@ def all_categories():
 
 def category_by_id(cat_id):
     category = db.session.query(Category).get(cat_id)
+    # check category is exist or not
+    if not category:
+        return jsonify({"error": "Category not found"})
     return jsonify(category_serializer(category).json)
 
 
 def products_by_category(cat_id):
+    category = db.session.query(Category).get(cat_id)
+    # check category is exist or not
+    if not category:
+        return jsonify({"error": "Category not found"})
     products = db.session.query(Product).filter(Product.category_id == cat_id).all()
     category = db.session.query(Category).get(cat_id)
     all_products = [product_serializer(product).json for product in products]
