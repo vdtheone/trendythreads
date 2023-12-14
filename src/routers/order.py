@@ -1,6 +1,7 @@
 from flask import Blueprint, jsonify
 
-from src.views.order import (
+from src.views.order import (  # order_status_update,
+    add_multiple_order,
     add_new_order,
     delete_order,
     details_of_order,
@@ -8,7 +9,6 @@ from src.views.order import (
     generate_invoice_pdf,
     get_invoice_data,
     order_by_customer,
-    order_status_update,
     send_pdf_as_attachment,
 )
 
@@ -42,7 +42,10 @@ def order_delete(order_id):
 
 @order_bp.route("/<order_id>/status", methods=["PUT"])
 def update_order_status(order_id):
-    return order_status_update(order_id)
+    return jsonify(
+        {"Error": "for now this functionality is not working we will work on this."}
+    )
+    # return order_status_update(order_id)
 
 
 # @order_bp.route("/<order_id>/invoice", methods=["GET"])
@@ -61,3 +64,8 @@ def generate_invoice(order_id):
 
     # Serve the PDF as a downloadable attachment
     return send_pdf_as_attachment(pdf_data)
+
+
+@order_bp.route("/multiple_order", methods=["POST"])
+def new_multiple_order():
+    return add_multiple_order()
