@@ -66,7 +66,7 @@ def create_user():
         db.session.commit()
         db.session.refresh(email_otp)
 
-        send_otp_by_email(user_details["email"], otp)
+        send_otp_by_email(user_details["email"], otp, "Verification")
         return jsonify({"id": user.id, "message": "OTP Send To Your Mail successfully"})
     except Exception as e:
         return jsonify({"error": str(e)})
@@ -223,18 +223,18 @@ def forgot_password():
     db.session.add(email_otp_instance)
     db.session.commit()
     db.session.refresh(email_otp_instance)
-    send_otp_by_email(user_email, otp)
+    send_otp_by_email(user_email, otp, "Forgot Password")
     return jsonify({"message": "OTP Send To Your Mail successfully"})
 
 
 def update_user_password():
-    data = currunt_user_data()
-    email = data["email"]
+    user_data_from_token = currunt_user_data()
+    email = user_data_from_token["email"]
     user = db.session.query(User).filter(User.email == email).first()
     if not user:
         return jsonify({"error": "Invalid Email"})
-    data = request.json
-    password = data["password"]
+    user_input = request.json
+    password = user_input["password"]
     password = hash_password(password)
     user.password = password
     db.session.commit()
@@ -242,26 +242,26 @@ def update_user_password():
     return jsonify({"message": "Password is updated. login with new password"})
 
 
-@token_required
-def update_password_logic(decoded_data):
-    email = decoded_data.get("email")
+# @token_required
+# def update_password_logic(decoded_data):
+#     email = decoded_data.get("email")
 
-    # Retrieve the user from the database
-    user = db.session.query(User).filter_by(email=email).first()
-    if not user:
-        return jsonify({"error": "User not found"}), 404
+#     # Retrieve the user from the database
+#     user = db.session.query(User).filter_by(email=email).first()
+#     if not user:
+#         return jsonify({"error": "User not found"}), 404
 
-    # Extract and hash the new password from the JSON request
-    request_data = request.get_json()
-    password = request_data.get("password")
-    if not password:
-        return jsonify({"error": "Password is missing"}), 400
+#     # Extract and hash the new password from the JSON request
+#     request_data = request.get_json()
+#     password = request_data.get("password")
+#     if not password:
+#         return jsonify({"error": "Password is missing"}), 400
 
-    # Hash the new password and update it in the database
-    hashed_password = hash_password(password)
-    user.password = hashed_password
+#     # Hash the new password and update it in the database
+#     hashed_password = hash_password(password)
+#     user.password = hashed_password
 
-    # Commit the changes to the database
-    db.session.commit()
+#     # Commit the changes to the database
+#     db.session.commit()
 
-    return jsonify({"message": "Password is updated. Log in with your new password"})
+#     return jsonify({"message": "Password is updated. Log in with your new password"})
