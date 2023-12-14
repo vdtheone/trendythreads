@@ -8,6 +8,7 @@ from src.views.order import (  # order_status_update,
     filter_order,
     generate_invoice_pdf,
     get_invoice_data,
+    insert_invoice_data,
     order_by_customer,
     send_pdf_as_attachment,
 )
@@ -57,13 +58,14 @@ def update_order_status(order_id):
 def generate_invoice(order_id):
     order_obj = get_invoice_data(order_id)
     if order_obj is None:
-        return jsonify({"error": "Order not found"}, 404)
+        return jsonify({"error": "Order not found"})
+    else:
+        insert_invoice_data(order_obj.id)
+        # Generate the PDF invoice
+        pdf_data = generate_invoice_pdf(order_obj)
 
-    # Generate the PDF invoice
-    pdf_data = generate_invoice_pdf(order_obj)
-
-    # Serve the PDF as a downloadable attachment
-    return send_pdf_as_attachment(pdf_data)
+        # Serve the PDF as a downloadable attachment
+        return send_pdf_as_attachment(pdf_data)
 
 
 @order_bp.route("/multiple_order", methods=["POST"])
