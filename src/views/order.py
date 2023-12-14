@@ -187,10 +187,7 @@ def insert_invoice_data(order_id):
 
 
 def get_invoice_data(order_id):
-    order = db.session.query(Order).filter(Order.id == order_id).first()
-    if order is None:
-        return jsonify({"error": "order not found"})
-    insert_invoice_data(order_id)
+    order = db.session.query(Order).get(order_id)
     return order
 
 
