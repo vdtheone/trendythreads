@@ -53,6 +53,8 @@ def all_products():
 
 def one_product(product_id):
     product = db.session.query(Product).get(product_id)
+    if not product:
+        return jsonify({"error": "Product not found"})
     return jsonify(product_serializer(product).json)
 
 
@@ -123,6 +125,11 @@ def filter_product():
 
 @token_required
 def product_review_by_user(decoded_data, product_id):
+    # check product is exist  or not
+    product = db.session.query(Product).get(product_id)
+    if not product:
+        return jsonify({"error": "Product not found"})
+
     user_id = decoded_data["id"]
     review_data = request.json
     user_id_and_product_id = {"user_id": user_id, "product_id": product_id}
@@ -136,6 +143,11 @@ def product_review_by_user(decoded_data, product_id):
 
 @token_required
 def product_rating_by_user(decoded_data, product_id):
+    # check product is exist  or not
+    product = db.session.query(Product).get(product_id)
+    if not product:
+        return jsonify({"error": "Product not found"})
+
     user_id = decoded_data["id"]
     review_data = request.json
     user_id_and_product_id = {"user_id": user_id, "product_id": product_id}
