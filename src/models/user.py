@@ -10,7 +10,7 @@ from src.utils.generate_uuid import generate_uuid
 class User(db.Model):
     __tablename__ = "user"
 
-    id = Column(String, primary_key=True, index=True, default=generate_uuid())
+    id = Column(String, primary_key=True, index=True, default=generate_uuid)
     first_name = Column(String)
     last_name = Column(String)
     email = Column(String)
