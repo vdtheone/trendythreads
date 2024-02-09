@@ -1,5 +1,10 @@
+import os
+from datetime import datetime
+from uuid import uuid4
+
 from flask import jsonify, request
 from fuzzywuzzy import fuzz
+from werkzeug.utils import secure_filename
 
 from src.common_crud.crud import CRUD
 from src.database import db
@@ -9,18 +14,74 @@ from src.utils.required_jwt_token import token_required
 
 product_crud = CRUD(Product)
 
+UPLOAD_FOLDER = 'E:\\Internship\\Flask\\trendythreads\\src\\static\\uploads'
+
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+
+def update_product_image(product_id):
+    product = Product.query.get(product_id)
+
+    if not product:
+        return jsonify({"error": "Product not found"}), 404
+
+    if 'image' not in request.files:
+        return jsonify({"error": "No image provided"}), 400
+
+    image = request.files['image']
+
+    if image.filename == '':
+        return jsonify({"error": "No selected file"}), 400
+
+    if image and allowed_file(image.filename):
+        filename = secure_filename(image.filename)
+        filename = f"{uuid4().hex}_{filename.replace(' ', '_')}"
+        image_path = os.path.join(UPLOAD_FOLDER, filename)
+
+        image.save(image_path)
+
+        # Update product image in the database
+        product.image = filename
+        product.updated_at = datetime.now()
+        db.session.commit()
+
+        return jsonify({"message": "Product image updated successfully"})
+    else:
+        return jsonify({"error": "Invalid file format for image"}), 400
+
 
 def add_new_product():
-    data = request.json
+    product_details = request.form.to_dict()
+
     new_product = Product(
-        category_id=data["category_id"],
-        name=data["name"],
-        description=data["description"],
-        price=data["price"],
-        brand=data["brand"],
-        image=data["image"],
-        active=data["active"],
+        category_id=product_details["category_id"],
+        name=product_details["name"],
+        description=product_details["description"],
+        price=product_details["price"],
+        brand=product_details["brand"],
     )
+
+    # set active True for product
+    if product_details['active'] == "true" or product_details['active'] == "True":
+        new_product.active = True
+
+    # Handle image upload
+    if 'image' in request.files:
+        image = request.files['image']
+        filename = secure_filename(image.filename)  # Ensure a secure filename
+
+        # Replace spaces with underscores in the filename
+        filename = filename.replace(' ', '_')
+
+        # Save the image with the updated filename
+        image.save(os.path.join(UPLOAD_FOLDER, filename))
+        print("=====", filename)
+        new_product.image = filename
+
     db.session.add(new_product)
     db.session.commit()
     db.session.refresh(new_product)
