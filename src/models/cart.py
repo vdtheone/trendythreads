@@ -19,9 +19,17 @@ class Cart(db.Model):
     updated_at = Column(DateTime, default=datetime.utcnow(), onupdate=datetime.utcnow())
 
     def serialize(self):
+        product = (
+            db.session.query(Product).filter(Product.id == self.product_id).first()
+        )
+
         return {
             "id": self.id,
             "user_id": self.user_id,
             "product_id": self.product_id,
             "quantity": self.quantity,
+            "name": product.name,
+            "price": product.price,
+            "brand": product.brand,
+            "image": product.image,
         }
