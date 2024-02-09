@@ -1,4 +1,5 @@
 from flask import Flask
+from flask_cors import CORS
 
 # Importing Flask-Limiter modules
 from flask_limiter import Limiter
@@ -14,6 +15,10 @@ from src.routers.order import order_bp
 from src.routers.product import product_bp
 from src.routers.user import configure_user_blueprint, user_bp
 
+# handle file uploads
+
+UPLOAD_FOLDER = 'E:\\Internship\\Flask\\trendythreads\\src\\static\\uploads'
+
 
 def create_app():
     app = Flask(__name__)
@@ -22,9 +27,13 @@ def create_app():
     limiter = Limiter(
         app=app,  # Passing the Flask app instance
         key_func=get_remote_address,  # Function to get the remote IP address
-        default_limits=["200 per day", "50 per hour"],  # Default rate limits
+        default_limits=["2000000 per day", "5000 per hour"],  # Default rate limits
         storage_uri="memory://",  # Using in-memory storage (for demonstration purposes)
     )
+
+    # Enable CORS for all routes
+    # CORS(app)  # This enables CORS for all origins.
+    CORS(app, origins=["http://localhost:5173"])
 
     # Configuring the user blueprint (avoiding circular import)
     configure_user_blueprint(limiter)
@@ -32,6 +41,10 @@ def create_app():
     # Setting up app configurations
     app.debug = True
     app.config["SQLALCHEMY_DATABASE_URI"] = Config.SQLALCHEMY_DATABASE_URI
+    app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+    # app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
+    app.config['MAX_CONTENT_PATH'] = 1024
+
     db.init_app(app)
 
     # Registering all blueprints with their respective URL prefixes
