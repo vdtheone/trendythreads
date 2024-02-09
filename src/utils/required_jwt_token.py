@@ -2,7 +2,7 @@ import os
 from functools import wraps
 
 import jwt
-from flask import jsonify, request
+from flask import g, jsonify, request
 
 JWT_SECRET_KEY = os.environ.get("JWT_SECRET_KEY")
 ALGORITHM = os.environ.get("ALGORITHM")
@@ -19,7 +19,9 @@ def login_required(func):
             token_parts = token.split()
 
             token = token_parts[1]
-            jwt.decode(token, JWT_SECRET_KEY, algorithms=[ALGORITHM])
+            decoded_data = jwt.decode(token, JWT_SECRET_KEY, algorithms=[ALGORITHM])
+            user_id = decoded_data.get("id")
+            g.user = user_id
 
             return func(*args, **kwargs)
 
@@ -64,6 +66,8 @@ def token_required(f):
                 return jsonify({"error": "Token is missing"}), 401
 
             decoded_data = jwt.decode(token, JWT_SECRET_KEY, algorithms=[ALGORITHM])
+            user_id = decoded_data.get("id")
+            g.user = user_id
 
             return f(decoded_data, *args, **kwargs)
 
