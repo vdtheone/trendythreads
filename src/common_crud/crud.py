@@ -32,7 +32,7 @@ class CRUD:
             setattr(item, key, value)
         db.session.commit()
         db.session.refresh(item)
-        return jsonify({"message": f"{self.model.__name__} updated"})
+        return jsonify(item.serialize())
 
     def delete(self, item_id):
         item = db.session.query(self.model).get(item_id)
@@ -45,5 +45,10 @@ class CRUD:
     def list_all(self):
         items = db.session.query(self.model).all()
         if not items:
-            return jsonify({"error": f"No {self.model.__name__} found"})
+            return jsonify({"error": f"No {self.model.__name__} found"}), 404
         return jsonify([item.serialize() for item in items])
+
+    def delete_all(self, user_id):
+        db.session.query(self.model).filter(self.model.user_id == user_id).delete()
+        db.session.commit()
+        return jsonify({"message": f"Deleted all records from {self.model.__name__}"})
