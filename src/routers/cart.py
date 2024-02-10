@@ -6,6 +6,7 @@ from src.views.cart import (
     delete_item_from_cart,
     get_all_item,
     get_cart_count,
+    get_cart_item_by_id,
     update_cart_item,
 )
 
@@ -20,6 +21,11 @@ def add_to_cart():
 @cart_bp.route("/", methods=["GET"])
 def all_cart_item():
     return get_all_item()
+
+
+@cart_bp.route("/<product_id>", methods=["GET"])
+def cart_item_by_id(product_id):
+    return get_cart_item_by_id(product_id)
 
 
 @cart_bp.route("/<cart_item_id>", methods=["DELETE"])

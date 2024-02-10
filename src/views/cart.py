@@ -56,3 +56,11 @@ def get_cart_count():
     items = db.session.query(Cart).filter_by(user_id=user_id).all()
     cart_count = len(items)
     return jsonify({'cartCount': cart_count})
+
+
+@login_required
+def get_cart_item_by_id(product_id):
+    item = db.session.query(Cart).filter(Cart.product_id == product_id).first()
+    if not item:
+        return jsonify({"error": "No Cart found"}), 404
+    return jsonify(item.serialize()), 200
