@@ -25,6 +25,6 @@ def get_category_by_id(cat_id):
     return category_by_id(cat_id)
 
 
-@category_bp.route("<cat_id>/products", methods=["GET"])
-def get_products_by_category(cat_id):
-    return products_by_category(cat_id)
+@category_bp.route("<cat_name>/products", methods=["GET"])
+def get_products_by_category(cat_name):
+    return products_by_category(cat_name)
