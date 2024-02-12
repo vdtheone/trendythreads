@@ -7,6 +7,7 @@ from src.serializers.category_serializer import category_serializer
 from src.serializers.product_serializer import product_serializer
 
 
+# Add a new category to the database
 def add_new_category():
     data = request.json
     new_cat = Category(name=data["name"], description=data["description"])
@@ -16,29 +17,26 @@ def add_new_category():
     return jsonify({"message": "Add category"})
 
 
+# Retrieve all categories from the database
 def all_categories():
     categories = db.session.query(Category).all()
     all_categories = [category_serializer(category).json for category in categories]
     return jsonify({"categories": all_categories})
 
 
+# Retrieve a category by its ID
 def category_by_id(cat_id):
     category = db.session.query(Category).get(cat_id)
-    # check category is exist or not
     if not category:
         return jsonify({"error": "Category not found"})
     return jsonify(category_serializer(category).json)
 
 
+# Retrieve products associated with a category by its name
 def products_by_category(cat_name):
-    # category = db.session.query(Category).get(cat_id)
-
-    # fetch category using category name
     category = (
         db.session.query(Category).filter(Category.name.ilike(f"%{cat_name}%")).first()
     )
-
-    # check category is exist or not
     if not category:
         return jsonify({"error": "Category not found"})
     products = (
