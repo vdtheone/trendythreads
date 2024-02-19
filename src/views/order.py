@@ -9,7 +9,10 @@ from src.database import db
 from src.models.inventory import Inventory
 from src.models.order import Invoice, Order, OrderItem
 from src.models.product import Product
-from src.serializers.order_serializer import order_serialzer
+from src.serializers.order_serializer import (
+    add_new_order_serialzer,
+    all_customer_orders_serialzer,
+)
 from src.utils.required_jwt_token import token_required
 
 
@@ -70,7 +73,7 @@ def add_new_order(decoded_data):
         update_inventory.stock_quantity -= new_order_item.quantity
         db.session.commit()
         db.session.refresh(new_order)
-        return order_serialzer(new_order)
+        return add_new_order_serialzer(new_order)
 
     except Exception as e:
         db.session.rollback()
@@ -109,27 +112,25 @@ def order_by_customer(decoded_data):
     limit = int(request.args.get("limit", 10))
     user_id = decoded_data.get("id")
     offset = (page - 1) * limit
-    all_orders = db.session.query(Order)
-    orders = (
-        all_orders.filter(Order.user_id == user_id).limit(limit).offset(offset).all()
-    )
 
-    user_products = (
+    user_orders = (
         db.session.query(OrderItem)
         .join(Order, Order.id == OrderItem.order_id)
         .filter(Order.user_id == user_id)
+        .limit(limit)
+        .offset(offset)
         .all()
     )
 
     total_order_amount = 0
-    for product in user_products:
-        total_order_amount += product.total_amount
+    for order in user_orders:
+        total_order_amount += order.total_amount
 
-    all_orders_data = [order.serialize() for order in orders]
+    all_orders_data = [all_customer_orders_serialzer(order) for order in user_orders]
     return jsonify(
         {
             "message": all_orders_data,
-            "count": all_orders.count(),
+            "count": len(all_orders_data),
             "Total_amount": total_order_amount,
         }
     )
@@ -325,4 +326,4 @@ def add_multiple_order(decoded_data):
         update_inventory.stock_quantity -= new_order_item.quantity
         db.session.commit()
         db.session.refresh(update_inventory)
-    return order_serialzer(new_order)
+    return add_new_order_serialzer(new_order)
