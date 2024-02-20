@@ -11,6 +11,7 @@ from src.models.category import Category
 from src.models.cart import Cart
 from src.models.order import Order, Invoice, OrderItem
 from src.models.inventory import Inventory
+from src.models.address import Address
 from src.database import db
 
 # this is the Alembic Config object, which provides
