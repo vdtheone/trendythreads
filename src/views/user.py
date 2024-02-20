@@ -144,7 +144,10 @@ def get_user_by_id(decoded_data):
 
 @login_required
 def all_users():
-    return user_crud.list_all()
+    users = db.session.query(User).all()
+    print(users)
+    all_users = [user.serialize() for user in users]
+    return jsonify({"users": all_users})
 
 
 @token_required
