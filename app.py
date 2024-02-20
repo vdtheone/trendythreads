@@ -8,6 +8,7 @@ from flask_limiter.util import get_remote_address
 # Importing your configurations and blueprints
 from config import Config
 from src.database import db
+from src.routers.address import address_bp
 from src.routers.cart import cart_bp
 from src.routers.category import category_bp
 from src.routers.inventory import inventory_bp
@@ -54,6 +55,7 @@ def create_app():
     app.register_blueprint(cart_bp, url_prefix="/api/cart")
     app.register_blueprint(order_bp, url_prefix="/api/order")
     app.register_blueprint(inventory_bp, url_prefix="/api/inventory")
+    app.register_blueprint(address_bp, url_prefix="/api/address")
 
     return app
 
