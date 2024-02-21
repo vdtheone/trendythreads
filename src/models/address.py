@@ -32,6 +32,6 @@ class Address(db.Model):
             "city_district_town": self.city_district_town,
             "state": self.state,
             "landmark": self.landmark,
-            "alernate_mobile_no": self.alernate_mobile_no,
+            "alternate_mobile_no": self.alernate_mobile_no,
             "address_type": self.address_type,
         }
