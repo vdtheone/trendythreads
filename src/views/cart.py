@@ -9,6 +9,7 @@ from src.utils.required_jwt_token import login_required, token_required
 cart_crud = CRUD(Cart)
 
 
+# Endpoint to add an item to the user's cart
 @login_required
 def add_to_cart_item():
     data = request.json
@@ -17,6 +18,7 @@ def add_to_cart_item():
     return responce
 
 
+# Endpoint to get all items in the user's cart
 @login_required
 def get_all_item():
     user_id = g.user
@@ -35,21 +37,25 @@ def get_all_item():
     )
 
 
+# Endpoint to delete an item from the user's cart
 def delete_item_from_cart(cart_item_id):
     return cart_crud.delete(cart_item_id)
 
 
+# Endpoint to update an item in the user's cart
 def update_cart_item(cart_item_id):
     updated_data = request.json
     return cart_crud.update(cart_item_id, updated_data)
 
 
+# Endpoint to delete all items from the user's cart
 @token_required
 def delete_all_items(decoded_token):
     user_id = decoded_token.get("id")
     return cart_crud.delete_all(user_id)
 
 
+# Endpoint to get the count of items in the user's cart
 @login_required
 def get_cart_count():
     user_id = g.user
@@ -58,6 +64,7 @@ def get_cart_count():
     return jsonify({'cartCount': cart_count})
 
 
+# Endpoint to get an item from the user's cart by its ID
 @login_required
 def get_cart_item_by_id(product_id):
     item = db.session.query(Cart).filter(Cart.product_id == product_id).first()
