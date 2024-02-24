@@ -50,7 +50,7 @@ def all_customer_orders_serialzer(order_object):
 
     return {
         "order_details": {
-            "order_id": order_object.id,
+            "order_id": order_object.order_id,
             "total_amount": total_amount,
             "product": serialized,
             "total_amount": total_amount,
