@@ -28,7 +28,7 @@ def create_app():
     limiter = Limiter(
         app=app,  # Passing the Flask app instance
         key_func=get_remote_address,  # Function to get the remote IP address
-        default_limits=["2000000 per day", "5000 per hour"],  # Default rate limits
+        default_limits=["2000000 per day", "500000 per hour"],  # Default rate limits
         storage_uri="memory://",  # Using in-memory storage (for demonstration purposes)
     )
 
