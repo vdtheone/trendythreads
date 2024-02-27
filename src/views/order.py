@@ -16,9 +16,11 @@ from src.serializers.order_serializer import (
 from src.utils.required_jwt_token import token_required
 
 
+# Function to add a new order
 @token_required
 def add_new_order(decoded_data):
     try:
+        # Extract user ID from decoded data
         user_id = decoded_data.get("id")
         order_data = request.json
         for key, value in order_data.items():
@@ -48,11 +50,13 @@ def add_new_order(decoded_data):
 
         total_amount = product.price * order_data["quantity"]
 
+        # Create new order
         new_order = Order(user_id=user_id)
         db.session.add(new_order)
         db.session.commit()
         db.session.refresh(new_order)
 
+        # Create new order item
         new_order_item = OrderItem(
             order_id=new_order.id,
             product_id=order_data["product_id"],
@@ -90,11 +94,13 @@ def filter_order(decoded_data):
     end_date_obj = datetime.strptime(end_date, "%Y-%m-%d")
     end_date = end_date_obj + timedelta(days=1)
 
+    # Set default start and end dates if not provided
     if start_date is None or end_date is None:
         today = date.today()
         start_date = today
         end_date = today + timedelta(days=1)
 
+    # Query orders within specified date range
     orders = (
         db.session.query(Order)
         .filter(
@@ -102,6 +108,7 @@ def filter_order(decoded_data):
         )
         .all()
     )
+    # Serialize orders
     filtered_orders = [order.serialize() for order in orders]
     return jsonify({"message": filtered_orders, "count": len(filtered_orders)})
 
