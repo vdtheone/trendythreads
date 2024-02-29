@@ -22,6 +22,7 @@ JWT_SECRET_KEY = os.environ.get("JWT_SECRET_KEY")
 ALGORITHM = os.environ.get("ALGORITHM")
 
 
+# generate hash password
 def hash_password(password: str):
     hash_obj = sha256()
     hash_obj.update(password.encode("utf-8"))
@@ -72,6 +73,7 @@ def create_user():
         return jsonify({"error": str(e)})
 
 
+# varify user otp
 def varify_otp():
     requested_user_data = request.json
     otp = requested_user_data["otp"]
@@ -142,6 +144,7 @@ def get_user_by_id(decoded_data):
     return user_crud.get_by_id(user_id)
 
 
+# get all users
 @login_required
 def all_users():
     users = db.session.query(User).all()
