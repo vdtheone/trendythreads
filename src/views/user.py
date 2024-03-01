@@ -136,6 +136,7 @@ def login_user():
     return jsonify({"message": "Login successful", "token": access_token})
 
 
+# Get user by it's id
 @token_required
 def get_user_by_id(decoded_data):
     user_id = decoded_data.get("id")
@@ -153,6 +154,7 @@ def all_users():
     return jsonify({"users": all_users})
 
 
+# Update user details
 @token_required
 def update_user_details(decoded_data):
     user_id = decoded_data.get("id")
