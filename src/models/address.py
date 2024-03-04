@@ -1,4 +1,5 @@
 from sqlalchemy import Column, ForeignKey, Integer, String
+from sqlalchemy.orm import relationship
 
 from src.database import db
 from src.models.user import User
@@ -20,6 +21,8 @@ class Address(db.Model):
     landmark = Column(String)
     alernate_mobile_no = Column(String)
     address_type = Column(String)
+
+    user = relationship("User", back_populates="address")
 
     def serialize(self):
         return {
