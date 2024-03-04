@@ -79,7 +79,6 @@ def add_new_product():
 
         # Save the image with the updated filename
         image.save(os.path.join(UPLOAD_FOLDER, filename))
-        print("=====", filename)
         new_product.image = filename
 
     db.session.add(new_product)
