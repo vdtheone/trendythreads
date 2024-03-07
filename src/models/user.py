@@ -23,6 +23,7 @@ class User(db.Model):
 
     # Define one-to-many relationship with orders
     orders = relationship("Order", back_populates="user")
+    address = relationship("Address", back_populates="user")
 
     def serialize(self):
         return {
