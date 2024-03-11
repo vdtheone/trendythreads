@@ -5,6 +5,7 @@ from sqlalchemy import Column, DateTime, ForeignKey, Integer, String
 from sqlalchemy.orm import relationship
 
 from src.database import db
+from src.models.address import Address
 from src.models.product import Product
 from src.models.user import User
 from src.utils.generate_uuid import generate_uuid
@@ -55,12 +56,14 @@ class Order(db.Model):
 
     id = Column(String, primary_key=True, index=True, default=generate_uuid)
     user_id = Column(String, ForeignKey(User.id))
+    address_id = Column(String, ForeignKey(Address.id))
     created_at = Column(DateTime, default=datetime.utcnow())
     updated_at = Column(DateTime, default=datetime.utcnow(), onupdate=datetime.utcnow())
 
     # Define relationships
     user = relationship("User", back_populates="orders")
     order_item = relationship("OrderItem", back_populates="orders")
+    address = relationship("Address")
 
     def serialize(self):
         return {
@@ -101,5 +104,6 @@ class OrderItem(db.Model):
 class Invoice(db.Model):
     id = Column(String, primary_key=True, index=True, default=generate_uuid)
     order_id = Column(String, ForeignKey(Order.id))
+    orderitem_id = Column(String, ForeignKey(OrderItem.id))
     created_at = Column(DateTime, default=datetime.utcnow())
     updated_at = Column(DateTime, default=datetime.utcnow(), onupdate=datetime.utcnow())
